@@ -18,6 +18,12 @@
       }
     }
   ],
+  "buildPresets": [
+    {
+      "name": "unit-tests",
+      "configurePreset": "unit-tests"
+    }
+  ],
   "testPresets": [
     {
       "name": "unit-tests",

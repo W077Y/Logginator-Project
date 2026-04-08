@@ -1,6 +1,7 @@
 {
   "folders": [
     {
+      "name": "Logginator-Project",
       "path": "."
     }
   ],
@@ -32,9 +33,9 @@
         "name": "Launch",
         "type": "lldb",
         "request": "launch",
-        "program": "${workspaceRoot}/build/unit-tests/tests/tst_Printer/TEST_Printer",
+        "program": "${workspaceFolder:Logginator-Project}/build/unit-tests/tests/tst_printer/TEST_Printer",
         "args": [],
-        "cwd": "${workspaceRoot}"
+        "cwd": "${workspaceFolder}"
       }
     ],
     "compounds": []
