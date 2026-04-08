@@ -1,0 +1,42 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "cmake.useCMakePresets": "always",
+    "cmake.configurePreset": "unit-tests",
+    "cmake.buildPreset": "unit-tests",
+    "cmake.testPreset": "unit-tests",
+    "cmake.configureOnOpen": true,
+    "clangd.arguments": [
+      "--compile-commands-dir=${workspaceFolder}/build/unit-tests",
+    ],
+    "clangd.onConfigChanged": "restart"
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Build (Unit-Tests)",
+        "type": "shell",
+        "command": "cmake --build --preset unit-tests && ctest --preset unit-tests"
+      }
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Launch",
+        "type": "lldb",
+        "request": "launch",
+        "program": "${workspaceRoot}/build/unit-tests/tests/tst_Printer/TEST_Printer",
+        "args": [],
+        "cwd": "${workspaceRoot}"
+      }
+    ],
+    "compounds": []
+  }
+}
