@@ -38,5 +38,6 @@ enable_testing()
 
 add_subdirectory( "${CMAKE_CURRENT_LIST_DIR}/logginator-lib" )
 add_subdirectory( "${CMAKE_CURRENT_LIST_DIR}/tests" )
+add_subdirectory( "${CMAKE_CURRENT_LIST_DIR}/experimental" )
 
 

@@ -50,7 +50,7 @@ TEST_CASE()
   }
   for (; i < 4; i++)
   {
-    my_app::type_a a{ .time = std::numeric_limits<signed long long int>::max(), .value_1 = i * 2.0 / 3.0};
+    my_app::type_a a{ .time = std::numeric_limits<signed long long int>::max(), .value_1 = i * 2.0 / 3.0 };
     logginator::print(a);
   }
 }
@@ -81,22 +81,21 @@ void my_app::print(type_a const& value, logginator::line_t& line)
 
 //
 #include <iostream>
-#include <logginator-manager.hpp>
-#include <logginator-printer.hpp>
 #include <mutex>
 
 logginator::Manager_Interface& request_manager()
 {
-  static class wrapper_t final: public logginator::Manager::Output_Interface
+  class wrapper_t final: public logginator::Manager_Interface::Output_Interface
   {
     void operator()(std::string_view msg) override { std::cout << msg; }
-  } wrapper;
-  static logginator::Manager obj{ wrapper };
+  };
+  static wrapper_t                             wrapper;
+  static logginator::Manager<std::mutex, 1024> obj{ wrapper };
   return obj;
 }
 
-logginator::line_t my_app::request_line(type_a const&)
+logginator::line_t my_app::request_line(type_a const& value)
 {
-  static logginator::Printer<std::mutex, type_a, 1024> obj{ request_manager(), logginator::channel_description_t{ 1, "my little printer 1" } };
+  static auto obj = request_manager().request_channel(value, logginator::channel_description_t{ 1, "Channel 1" });
   return obj.request_line();
 }

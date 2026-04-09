@@ -77,8 +77,8 @@ TEST_CASE()
     auto& man = request_manager();
     man.setup_channel(1, 1);
     man.setup_channel(2, 2);
-    man.setup_channel(0x10, 1);
-    man.setup_channel(0xFF, 2);
+    man.setup_channel(3, 1);
+    man.setup_channel(4, 2);
     man.print_channels();
   }
 
@@ -165,39 +165,37 @@ void my_app::print(type_d const& value, logginator::line_t& line)
 
 //
 #include <iostream>
-#include <logginator-manager.hpp>
-#include <logginator-printer.hpp>
 #include <mutex>
 
 logginator::Manager_Interface& request_manager()
 {
-  static class wrapper_t final: public logginator::Manager::Output_Interface
+  static class wrapper_t final: public logginator::Manager_Interface::Output_Interface
   {
     void operator()(std::string_view msg) override { std::cout << msg; }
   } wrapper;
-  static logginator::Manager obj{ wrapper };
+  static logginator::Manager<std::mutex, 2048> obj{ wrapper };
   return obj;
 }
 
-logginator::line_t my_app::request_line(type_a const&)
+logginator::line_t my_app::request_line(type_a const& value)
 {
-  static logginator::Printer<std::mutex, type_a, 1024> obj{ request_manager(), logginator::channel_description_t{ 1, "my little printer 1" } };
+  static auto obj = request_manager().request_channel(value, logginator::channel_description_t{ 1, "Channel 1" });
   return obj.request_line();
 }
 
-logginator::line_t my_app::request_line(type_b const&)
+logginator::line_t my_app::request_line(type_b const& value)
 {
-  static logginator::Printer<std::mutex, type_b, 1024> obj{ request_manager(), logginator::channel_description_t{ 2, "my little printer 2" } };
+  static auto obj = request_manager().request_channel(value, logginator::channel_description_t{ 2, "Channel 2" });
   return obj.request_line();
 }
 
-logginator::line_t my_app::request_line(type_c const&)
+logginator::line_t my_app::request_line(type_c const& value)
 {
-  static logginator::Printer<std::mutex, type_c, 1024> obj{ request_manager(), logginator::channel_description_t{ 0x10, "my little printer 3" } };
+  static auto obj = request_manager().request_channel(value, logginator::channel_description_t{ 3, "Channel 3" });
   return obj.request_line();
 }
-logginator::line_t my_app::request_line(type_d const&)
+logginator::line_t my_app::request_line(type_d const& value)
 {
-  static logginator::Printer<std::mutex, type_d, 1024> obj{ request_manager(), logginator::channel_description_t{ 0xFF, "my little printer 4" } };
+  static auto obj = request_manager().request_channel(value, logginator::channel_description_t{ 4, "Channel 4" });
   return obj.request_line();
 }
