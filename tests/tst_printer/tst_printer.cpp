@@ -62,26 +62,11 @@ namespace my_app
 }    // namespace my_app
 
 logginator::Manager_Interface& request_manager();
-#include <iostream>
+void                           init_logginator();
 
 TEST_CASE()
 {
-  //
-  logginator::request_line(my_app::type_a{});
-  logginator::request_line(my_app::type_b{});
-  logginator::request_line(my_app::type_c{});
-  logginator::request_line(my_app::type_d{});
-
-  //
-  {
-    auto& man = request_manager();
-    man.setup_channel(1, 1);
-    man.setup_channel(2, 2);
-    man.setup_channel(3, 1);
-    man.setup_channel(4, 2);
-    man.print_channels();
-  }
-
+  init_logginator();
   //
   std::size_t i = 0;
   for (; i < 5; i++)
@@ -99,7 +84,6 @@ TEST_CASE()
   }
   {
     request_manager().setup_channel(2, 3);
-    std::cout << "---" << std::endl;
     request_manager().print_channels();
   }
   for (; i < 10; i++)
@@ -119,6 +103,19 @@ TEST_CASE()
     logginator::print(d);
   }
 }
+
+void init_logginator()
+{
+  auto& man = request_manager();
+
+  man.setup_channel(request_line(my_app::type_a{}).get_cfg().ID, 1);
+  man.setup_channel(request_line(my_app::type_b{}).get_cfg().ID, 2);
+  man.setup_channel(request_line(my_app::type_c{}).get_cfg().ID, 3);
+  man.setup_channel(request_line(my_app::type_d{}).get_cfg().ID, 4);
+  man.print_channels();
+}
+
+#include <iostream>
 
 //
 void my_app::print(type_a const& value, logginator::line_t& line)
@@ -171,7 +168,17 @@ logginator::Manager_Interface& request_manager()
 {
   static class wrapper_t final: public logginator::Manager_Interface::Output_Interface
   {
-    void operator()(std::string_view msg) override { std::cout << msg; }
+    void operator()(std::string_view msg) noexcept override
+    {
+      try
+      {
+        std::cout << msg;
+      }
+      catch (std::exception const& e)
+      {
+        std::cout << e.what() << std::endl;
+      }
+    }
   } wrapper;
   static logginator::Manager<std::mutex, 2048> obj{ wrapper };
   return obj;
@@ -179,23 +186,27 @@ logginator::Manager_Interface& request_manager()
 
 logginator::line_t my_app::request_line(type_a const& value)
 {
-  static auto obj = request_manager().request_channel(value, logginator::channel_description_t{ 1, "Channel 1" });
+  using namespace logginator;
+  static auto obj = request_manager().request_channel(value, channel_description_t{ 1, "Channel 1" });
   return obj.request_line();
 }
 
 logginator::line_t my_app::request_line(type_b const& value)
 {
-  static auto obj = request_manager().request_channel(value, logginator::channel_description_t{ 2, "Channel 2" });
+  using namespace logginator;
+  static auto obj = request_manager().request_channel(value, channel_description_t{ 2, "Channel 2" });
   return obj.request_line();
 }
 
 logginator::line_t my_app::request_line(type_c const& value)
 {
-  static auto obj = request_manager().request_channel(value, logginator::channel_description_t{ 3, "Channel 3" });
+  using namespace logginator;
+  static auto obj = request_manager().request_channel(value, channel_description_t{ 3, "Channel 3" });
   return obj.request_line();
 }
 logginator::line_t my_app::request_line(type_d const& value)
 {
-  static auto obj = request_manager().request_channel(value, logginator::channel_description_t{ 4, "Channel 4" });
+  using namespace logginator;
+  static auto obj = request_manager().request_channel(value, channel_description_t{ 4, "Channel 4" });
   return obj.request_line();
 }

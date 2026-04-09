@@ -1,6 +1,7 @@
 #include "catch.hpp"
 
 #include <cstddef>
+#include <exception>
 #include <string_view>
 #include <ut_catch.hpp>
 //
@@ -87,7 +88,17 @@ logginator::Manager_Interface& request_manager()
 {
   class wrapper_t final: public logginator::Manager_Interface::Output_Interface
   {
-    void operator()(std::string_view msg) override { std::cout << msg; }
+    void operator()(std::string_view msg) noexcept override
+    {
+      try
+      {
+        std::cout << msg;
+      }
+      catch (std::exception const& e)
+      {
+        std::cout << e.what() << std::endl;
+      }
+    }
   };
   static wrapper_t                             wrapper;
   static logginator::Manager<std::mutex, 1024> obj{ wrapper };
