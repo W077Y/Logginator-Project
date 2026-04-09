@@ -22,7 +22,7 @@
       {
         "label": "Build (Unit-Tests)",
         "type": "shell",
-        "command": "cmake --build --preset unit-tests && ctest --preset unit-tests"
+        "command": "cmake --build --preset unit-tests --clean-first && ctest --preset unit-tests --build-and-test --output-on-failure"
       }
     ]
   },
@@ -30,13 +30,21 @@
     "version": "0.2.0",
     "configurations": [
       {
-        "name": "Launch",
+        "name": "TEST_FORMATOR",
+        "type": "lldb",
+        "request": "launch",
+        "program": "${workspaceFolder:Logginator-Project}/build/unit-tests/tests/tst_logginator_formator/TEST_FORMATOR",
+        "args": [],
+        "cwd": "${workspaceFolder}"
+      },
+      {
+        "name": "TEST_Printer",
         "type": "lldb",
         "request": "launch",
         "program": "${workspaceFolder:Logginator-Project}/build/unit-tests/tests/tst_printer/TEST_Printer",
         "args": [],
         "cwd": "${workspaceFolder}"
-      }
+      },
     ],
     "compounds": []
   }
