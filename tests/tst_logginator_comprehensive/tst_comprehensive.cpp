@@ -146,7 +146,7 @@ TEST_CASE("Logger: Basic integer formatting")
   g_output.clear();
 
   test_app::SimpleData data{ .count = 42, .value = 3.14 };
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   logginator::print(data);
 
   std::string output = g_output.get_output();
@@ -161,7 +161,7 @@ TEST_CASE("Logger: Negative integers")
   g_output.clear();
 
   test_app::SimpleData data{ .count = -123, .value = -45.67 };
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   logginator::print(data);
 
   std::string output = g_output.get_output();
@@ -174,7 +174,7 @@ TEST_CASE("Logger: Zero and small values")
   g_output.clear();
 
   test_app::SimpleData data{ .count = 0, .value = 0.0 };
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   logginator::print(data);
 
   std::string output = g_output.get_output();
@@ -186,7 +186,7 @@ TEST_CASE("Logger: Hexadecimal integer formatting")
   g_output.clear();
 
   test_app::BinaryData data{ .id = 0xDEADBEEF, .hash = {} };
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   logginator::print(data);
 
   std::string output = g_output.get_output();
@@ -198,7 +198,7 @@ TEST_CASE("Logger: Base64 binary data encoding")
   g_output.clear();
 
   test_app::BinaryData data{ .id = 1, .hash = {} };
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   // Fill hash with known pattern
   for (std::size_t i = 0; i < data.hash.size(); ++i)
   {
@@ -219,7 +219,7 @@ TEST_CASE("Logger: String data logging")
   g_output.clear();
 
   test_app::StringData data{ .index = 5, .message = "Hello World" };
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   logginator::print(data);
 
   std::string output = g_output.get_output();
@@ -232,7 +232,7 @@ TEST_CASE("Logger: Empty string handling")
   g_output.clear();
 
   test_app::StringData data{ .index = 0, .message = "" };
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   logginator::print(data);
 
   std::string output = g_output.get_output();
@@ -244,7 +244,7 @@ TEST_CASE("Logger: Channel headers")
   g_output.clear();
   // Log some data first
   test_app::SimpleData simple{ .count = 1, .value = 1.0 };
-  get_manager().setup_channel(logginator::request_line(simple).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(simple).get_cfg().ID, 1);
   logginator::print(simple);
   // Print headers
   get_manager().print_channels();
@@ -260,7 +260,7 @@ TEST_CASE("Logger: Downsampling configuration")
   g_output.clear();
 
   // Setup channel 10 to downsample every 3rd sample
-  get_manager().setup_channel(logginator::request_line(test_app::SimpleData()).get_cfg().ID, 3);
+  get_manager().setup_channel(request_line(test_app::SimpleData()).get_cfg().ID, 3);
 
   // Log 10 samples
   for (int i = 0; i < 10; ++i)
@@ -281,7 +281,7 @@ TEST_CASE("Logger: Large values")
   g_output.clear();
 
   test_app::SimpleData data{ .count = std::numeric_limits<int32_t>::max(), .value = std::numeric_limits<double>::max() };
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   logginator::print(data);
 
   std::string output = g_output.get_output();
@@ -296,9 +296,9 @@ TEST_CASE("Logger: Multiple data types in sequence")
   test_app::SimpleData simple{ .count = 42, .value = 1.5 };
   test_app::StringData str{ .index = 1, .message = "test" };
   test_app::BinaryData binary{ .id = 99, .hash = {} };
-  get_manager().setup_channel(logginator::request_line(simple).get_cfg().ID, 1);
-  get_manager().setup_channel(logginator::request_line(str).get_cfg().ID, 1);
-  get_manager().setup_channel(logginator::request_line(binary).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(simple).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(str).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(binary).get_cfg().ID, 1);
   logginator::print(simple);
   logginator::print(str);
   logginator::print(binary);
@@ -318,7 +318,7 @@ TEST_CASE("Logger: Line format structure")
   g_output.clear();
 
   test_app::SimpleData data{ .count = 123, .value = 45.6 };
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   logginator::print(data);
 
   std::string output = g_output.get_output();
@@ -335,7 +335,7 @@ TEST_CASE("Logger: Special float values (infinity)")
   g_output.clear();
 
   test_app::SimpleData data{ .count = 1, .value = std::numeric_limits<double>::infinity() };
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   logginator::print(data);
 
   std::string output = g_output.get_output();
@@ -347,7 +347,7 @@ TEST_CASE("Logger: Special float values (NaN)")
   g_output.clear();
 
   test_app::SimpleData data{ .count = 1, .value = std::numeric_limits<double>::quiet_NaN() };
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   logginator::print(data);
 
   std::string output = g_output.get_output();
@@ -359,7 +359,7 @@ TEST_CASE("Logger: Boolean as integer")
   g_output.clear();
 
   test_app::BoolData data{ .flag = true };
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   logginator::print(data);
 
   std::string output = g_output.get_output();
@@ -373,7 +373,7 @@ TEST_CASE("Logger: Rapid successive logging")
   for (int i = 0; i < 100; ++i)
   {
     test_app::SimpleData data{ .count = i, .value = i * 0.5 };
-    get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+    get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
     logginator::print(data);
   }
 
@@ -389,7 +389,7 @@ TEST_CASE("Logger: Buffer capacity")
 
   // Try to log very long strings
   test_app::StringData data{ .index = 999, .message = "This is a very long test message that should fit in the buffer without issues" };
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   logginator::print(data);
 
   std::string output = g_output.get_output();
@@ -404,14 +404,14 @@ TEST_CASE("Logger: Binary data with various byte patterns")
 
   // All zeros
   std::fill(data.hash.begin(), data.hash.end(), std::byte(0x00));
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   logginator::print(data);
 
   g_output.clear();
 
   // All ones
   std::fill(data.hash.begin(), data.hash.end(), std::byte(0xFF));
-  get_manager().setup_channel(logginator::request_line(data).get_cfg().ID, 1);
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
   logginator::print(data);
 
   std::string output = g_output.get_output();

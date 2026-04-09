@@ -29,7 +29,7 @@ logginator::Manager_Interface& request_manager();
 TEST_CASE()
 {
   //
-  logginator::request_line(my_app::type_a{});
+  request_line(my_app::type_a{});
 
   //
   {
