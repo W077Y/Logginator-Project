@@ -1,5 +1,3 @@
-#include "catch.hpp"
-
 #include <cstddef>
 #include <string_view>
 #include <ut_catch.hpp>

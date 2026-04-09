@@ -6,6 +6,7 @@ add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/ut_catch")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tst_printer")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tst_format_line")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tst_logginator_formator")
+add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/tst_logginator_comprehensive")
 
 
 

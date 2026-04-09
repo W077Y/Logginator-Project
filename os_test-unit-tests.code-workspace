@@ -46,6 +46,14 @@
         "cwd": "${workspaceFolder}"
       },
       {
+        "name": "tst_comprehensive",
+        "type": "lldb",
+        "request": "launch",
+        "program": "${workspaceFolder:Logginator-Project}/build/unit-tests/tests/tst_logginator_comprehensive/tst_comprehensive",
+        "args": [],
+        "cwd": "${workspaceFolder}"
+      },
+      {
         "name": "Experimental",
         "type": "lldb",
         "request": "launch",
