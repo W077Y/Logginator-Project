@@ -119,43 +119,43 @@ void init_logginator()
 void my_app::print(type_a const& value, logginator::line_t& line)
 {
   using namespace logginator;
-  using FI = column_description_int::Format;
-  using FF = column_description_float::Format;
-  line.add(column_description_int{ "Time", "s", FI::ascii }, value.time);
-  line.add(column_description_float{ "value_1", "degC", FF::ascii }, value.value_1);
-  line.add(column_description_float{ "value_2", "degC", FF::ascii }, value.value_2);
+  using FI = ColumnDescriptionInt::Format;
+  using FF = ColumnDescriptionFloat::Format;
+  line.add(ColumnDescriptionInt{ "Time", "s", FI::ascii }, value.time);
+  line.add(ColumnDescriptionFloat{ "value_1", "degC", FF::ascii }, value.value_1);
+  line.add(ColumnDescriptionFloat{ "value_2", "degC", FF::ascii }, value.value_2);
 }
 
 void my_app::print(type_b const& value, logginator::line_t& line)
 {
   using namespace logginator;
-  using FI = column_description_int::Format;
-  using FF = column_description_float::Format;
-  line.add(column_description_int{ "Time", "s", FI::ascii }, value.time);
-  line.add(column_description_float{ "value_2", "degC", FF::ascii }, value.value_1);
-  line.add(column_description_float{ "value_3", "degC", FF::ascii }, value.value_2);
-  line.add(column_description_float{ "value_4", "degC", FF::ascii }, value.value_3);
-  line.add(column_description_float{ "value_5", "degC", FF::ascii }, value.value_4);
+  using FI = ColumnDescriptionInt::Format;
+  using FF = ColumnDescriptionFloat::Format;
+  line.add(ColumnDescriptionInt{ "Time", "s", FI::ascii }, value.time);
+  line.add(ColumnDescriptionFloat{ "value_2", "degC", FF::ascii }, value.value_1);
+  line.add(ColumnDescriptionFloat{ "value_3", "degC", FF::ascii }, value.value_2);
+  line.add(ColumnDescriptionFloat{ "value_4", "degC", FF::ascii }, value.value_3);
+  line.add(ColumnDescriptionFloat{ "value_5", "degC", FF::ascii }, value.value_4);
 }
 
 void my_app::print(type_c const& value, logginator::line_t& line)
 {
   using namespace logginator;
-  using FI = column_description_int::Format;
-  using FS = column_description_string::Format;
-  line.add(column_description_int{ "Time", "s", FI::ascii }, value.time);
-  line.add(column_description_string{ "txt", "", FS::ascii }, value.txt);
+  using FI = ColumnDescriptionInt::Format;
+  using FS = ColumnDescriptionString::Format;
+  line.add(ColumnDescriptionInt{ "Time", "s", FI::ascii }, value.time);
+  line.add(ColumnDescriptionString{ "txt", "", FS::ascii }, value.txt);
 }
 
 void my_app::print(type_d const& value, logginator::line_t& line)
 {
   using namespace logginator;
-  using FI = column_description_int::Format;
-  using FB = column_description_binary::Format;
-  line.add(column_description_int{ "Time", "s", FI::ascii }, value.time);
-  line.add(column_description_binary{ "hash1", "", FB::b64 }, std::span<std::byte const>{ value.hash1 });
-  line.add(column_description_binary{ "hash2", "", FB::b64 }, std::span<std::byte const>{ value.hash2 });
-  line.add(column_description_binary{ "hash3", "", FB::b64 }, std::span<std::byte const>{ value.hash3 });
+  using FI = ColumnDescriptionInt::Format;
+  using FB = ColumnDescriptionBinary::Format;
+  line.add(ColumnDescriptionInt{ "Time", "s", FI::ascii }, value.time);
+  line.add(ColumnDescriptionBinary{ "hash1", "", FB::b64 }, std::span<std::byte const>{ value.hash1 });
+  line.add(ColumnDescriptionBinary{ "hash2", "", FB::b64 }, std::span<std::byte const>{ value.hash2 });
+  line.add(ColumnDescriptionBinary{ "hash3", "", FB::b64 }, std::span<std::byte const>{ value.hash3 });
 }
 
 //
@@ -185,26 +185,26 @@ logginator::Manager_Interface& request_manager()
 logginator::line_t my_app::request_line(type_a const& value)
 {
   using namespace logginator;
-  static auto obj = request_manager().request_channel(value, channel_description_t{ 1, "Channel 1" });
+  static auto obj = request_manager().request_channel(value, ChannelDescription{ 1, "Channel 1" });
   return obj.request_line();
 }
 
 logginator::line_t my_app::request_line(type_b const& value)
 {
   using namespace logginator;
-  static auto obj = request_manager().request_channel(value, channel_description_t{ 2, "Channel 2" });
+  static auto obj = request_manager().request_channel(value, ChannelDescription{ 2, "Channel 2" });
   return obj.request_line();
 }
 
 logginator::line_t my_app::request_line(type_c const& value)
 {
   using namespace logginator;
-  static auto obj = request_manager().request_channel(value, channel_description_t{ 3, "Channel 3" });
+  static auto obj = request_manager().request_channel(value, ChannelDescription{ 3, "Channel 3" });
   return obj.request_line();
 }
 logginator::line_t my_app::request_line(type_d const& value)
 {
   using namespace logginator;
-  static auto obj = request_manager().request_channel(value, channel_description_t{ 4, "Channel 4" });
+  static auto obj = request_manager().request_channel(value, ChannelDescription{ 4, "Channel 4" });
   return obj.request_line();
 }

@@ -60,24 +60,24 @@ TEST_CASE()
 void my_app::print(type_a const& value, logginator::line_t& line)
 {
   using namespace logginator;
-  using FI = column_description_int::Format;
-  using FF = column_description_float::Format;
-  using FB = column_description_binary::Format;
-  using FS = column_description_string::Format;
-  line.add(column_description_int{ "Time", "s", FI::ascii }, value.time);
-  line.add(column_description_int{ "Time", "s", FI::hex }, value.time);
-  line.add(column_description_int{ "Time", "s", FI::b64 }, value.time);
-  line.add(column_description_int{ "Time", "s", FI::default_fmt }, value.time);
-  line.add(column_description_float{ "value_1", "degC", FF::ascii }, value.value_1);
-  line.add(column_description_float{ "value_1", "degC", FF::ascii_fixed }, value.value_1);
-  line.add(column_description_float{ "value_1", "degC", FF::ascii_scientific }, value.value_1);
-  line.add(column_description_float{ "value_1", "degC", FF::hex }, value.value_1);
-  line.add(column_description_float{ "value_1", "degC", FF::b64 }, value.value_1);
-  line.add(column_description_float{ "value_1", "degC", FF::default_fmt }, value.value_1);
-  line.add(column_description_binary{ "value_2", "degC", FB::b64 }, value.value_2);
-  line.add(column_description_binary{ "value_2", "degC", FB::default_fmt }, value.value_2);
-  line.add(column_description_string{ "value_3", "degC", FS::ascii }, value.value_3);
-  line.add(column_description_string{ "value_3", "degC", FS::default_fmt }, value.value_3);
+  using FI = ColumnDescriptionInt::Format;
+  using FF = ColumnDescriptionFloat::Format;
+  using FB = ColumnDescriptionBinary::Format;
+  using FS = ColumnDescriptionString::Format;
+  line.add(ColumnDescriptionInt{ "Time", "s", FI::ascii }, value.time);
+  line.add(ColumnDescriptionInt{ "Time", "s", FI::hex }, value.time);
+  line.add(ColumnDescriptionInt{ "Time", "s", FI::b64 }, value.time);
+  line.add(ColumnDescriptionInt{ "Time", "s", FI::default_fmt }, value.time);
+  line.add(ColumnDescriptionFloat{ "value_1", "degC", FF::ascii }, value.value_1);
+  line.add(ColumnDescriptionFloat{ "value_1", "degC", FF::ascii_fixed }, value.value_1);
+  line.add(ColumnDescriptionFloat{ "value_1", "degC", FF::ascii_scientific }, value.value_1);
+  line.add(ColumnDescriptionFloat{ "value_1", "degC", FF::hex }, value.value_1);
+  line.add(ColumnDescriptionFloat{ "value_1", "degC", FF::b64 }, value.value_1);
+  line.add(ColumnDescriptionFloat{ "value_1", "degC", FF::default_fmt }, value.value_1);
+  line.add(ColumnDescriptionBinary{ "value_2", "degC", FB::b64 }, value.value_2);
+  line.add(ColumnDescriptionBinary{ "value_2", "degC", FB::default_fmt }, value.value_2);
+  line.add(ColumnDescriptionString{ "value_3", "degC", FS::ascii }, value.value_3);
+  line.add(ColumnDescriptionString{ "value_3", "degC", FS::default_fmt }, value.value_3);
 }
 
 //
@@ -107,6 +107,6 @@ logginator::Manager_Interface& request_manager()
 
 logginator::line_t my_app::request_line(type_a const& value)
 {
-  static auto obj = request_manager().request_channel(value, logginator::channel_description_t{ 1, "Channel 1" });
+  static auto obj = request_manager().request_channel(value, logginator::ChannelDescription{ 1, "Channel 1" });
   return obj.request_line();
 }

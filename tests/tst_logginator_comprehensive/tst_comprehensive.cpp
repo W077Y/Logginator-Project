@@ -1,7 +1,6 @@
 #include <ut_catch.hpp>
 //
 #include <array>
-#include <iostream>
 #include <logginator.hpp>
 #include <mutex>
 #include <string>
@@ -83,60 +82,60 @@ namespace test_app
   void print(SimpleData const& data, logginator::line_t& line)
   {
     using namespace logginator;
-    using FI = column_description_int::Format;
-    using FF = column_description_float::Format;
+    using FI = ColumnDescriptionInt::Format;
+    using FF = ColumnDescriptionFloat::Format;
 
-    line.add(column_description_int{ "count", "", FI::ascii }, data.count);
-    line.add(column_description_float{ "value", "", FF::ascii }, data.value);
+    line.add(ColumnDescriptionInt{ "count", "", FI::ascii }, data.count);
+    line.add(ColumnDescriptionFloat{ "value", "", FF::ascii }, data.value);
   }
 
   logginator::line_t request_line(SimpleData const& val)
   {
-    static auto channel = get_manager().request_channel(val, logginator::channel_description_t{ 10, "SimpleData" });
+    static auto channel = get_manager().request_channel(val, logginator::ChannelDescription{ 10, "SimpleData" });
     return channel.request_line();
   }
 
   void print(BinaryData const& data, logginator::line_t& line)
   {
     using namespace logginator;
-    using FI = column_description_int::Format;
-    using FB = column_description_binary::Format;
+    using FI = ColumnDescriptionInt::Format;
+    using FB = ColumnDescriptionBinary::Format;
 
-    line.add(column_description_int{ "id", "", FI::hex }, data.id);
-    line.add(column_description_binary{ "hash", "", FB::b64 }, std::span<std::byte const>{ data.hash });
+    line.add(ColumnDescriptionInt{ "id", "", FI::hex }, data.id);
+    line.add(ColumnDescriptionBinary{ "hash", "", FB::b64 }, std::span<std::byte const>{ data.hash });
   }
 
   logginator::line_t request_line(BinaryData const& val)
   {
-    static auto channel = get_manager().request_channel(val, logginator::channel_description_t{ 11, "BinaryData" });
+    static auto channel = get_manager().request_channel(val, logginator::ChannelDescription{ 11, "BinaryData" });
     return channel.request_line();
   }
 
   void print(StringData const& data, logginator::line_t& line)
   {
     using namespace logginator;
-    using FI = column_description_int::Format;
-    using FS = column_description_string::Format;
+    using FI = ColumnDescriptionInt::Format;
+    using FS = ColumnDescriptionString::Format;
 
-    line.add(column_description_int{ "index", "", FI::ascii }, data.index);
-    line.add(column_description_string{ "message", "", FS::ascii }, data.message);
+    line.add(ColumnDescriptionInt{ "index", "", FI::ascii }, data.index);
+    line.add(ColumnDescriptionString{ "message", "", FS::ascii }, data.message);
   }
   logginator::line_t request_line(StringData const& val)
   {
-    static auto channel = get_manager().request_channel(val, logginator::channel_description_t{ 12, "StringData" });
+    static auto channel = get_manager().request_channel(val, logginator::ChannelDescription{ 12, "StringData" });
     return channel.request_line();
   }
 
   void print(BoolData const& data, logginator::line_t& line)
   {
     using namespace logginator;
-    using FI = column_description_int::Format;
+    using FI = ColumnDescriptionInt::Format;
 
-    line.add(column_description_int{ "flag", "", FI::ascii }, data.flag);
+    line.add(ColumnDescriptionInt{ "flag", "", FI::ascii }, data.flag);
   }
   logginator::line_t request_line(BoolData const& val)
   {
-    static auto channel = get_manager().request_channel(val, logginator::channel_description_t{ 20, "BoolData" });
+    static auto channel = get_manager().request_channel(val, logginator::ChannelDescription{ 20, "BoolData" });
     return channel.request_line();
   }
 }    // namespace test_app
@@ -508,7 +507,7 @@ TEST_CASE("Logger: Exception on line formatting")
 
   try
   {
-    auto channel = manager.request_channel(test_app::SimpleData(), logginator::channel_description_t{ 1, "VeryLongChannelNameThatWillCauseBufferOverflow" });
+    auto channel = manager.request_channel(test_app::SimpleData(), logginator::ChannelDescription{ 1, "VeryLongChannelNameThatWillCauseBufferOverflow" });
     manager.print_channels();
     //  This should throw due to buffer being too small
     REQUIRE(false);    // If we get here, buffer was large enough
@@ -527,8 +526,8 @@ TEST_CASE("Logger: Multiple channel registrations")
 
   try
   {
-    auto channel1 = manager.request_channel(test_app::SimpleData(), logginator::channel_description_t{ 50, "Ch1" });
-    auto channel2 = manager.request_channel(test_app::SimpleData(), logginator::channel_description_t{ 50, "Ch2" });
+    auto channel1 = manager.request_channel(test_app::SimpleData(), logginator::ChannelDescription{ 50, "Ch1" });
+    auto channel2 = manager.request_channel(test_app::SimpleData(), logginator::ChannelDescription{ 50, "Ch2" });
     // Second registration with same ID should fail
     REQUIRE(false);    // Should not reach here
   }
@@ -550,7 +549,7 @@ TEST_CASE("Logger: Channel ID boundary - minimum (0)")
   logginator::Manager<std::mutex, 8192> boundary_manager{ boundary_output };
   logginator::Manager_Interface&        manager = boundary_manager;
 
-  auto channel = manager.request_channel(test_app::SimpleData(), logginator::channel_description_t{ 0, "MinID" });
+  auto channel = manager.request_channel(test_app::SimpleData(), logginator::ChannelDescription{ 0, "MinID" });
   manager.setup_channel(0, 1);
 
   test_app::SimpleData data{ .count = 1, .value = 2.0 };
@@ -569,7 +568,7 @@ TEST_CASE("Logger: Channel ID boundary - maximum (255)")
   logginator::Manager<std::mutex, 8192> boundary_manager{ boundary_output };
   logginator::Manager_Interface&        manager = boundary_manager;
 
-  auto channel = manager.request_channel(test_app::SimpleData(), logginator::channel_description_t{ 255, "MaxID" });
+  auto channel = manager.request_channel(test_app::SimpleData(), logginator::ChannelDescription{ 255, "MaxID" });
   manager.setup_channel(255, 1);
 
   test_app::SimpleData data{ .count = 1, .value = 2.0 };
@@ -681,16 +680,15 @@ TEST_CASE("Logger: String with special characters")
 
 TEST_CASE("Logger: Sequential channel setup")
 {
+  using namespace logginator;
   StringOutput                          sequential_output;
   logginator::Manager<std::mutex, 8192> sequential_manager{ sequential_output };
   logginator::Manager_Interface&        manager = sequential_manager;
 
-  std::array<logginator::channel_description_t, 10> channel_descriptions = {
-    logginator::channel_description_t{ 1, "Channel1" }, logginator::channel_description_t{ 2, "Channel2" },
-    logginator::channel_description_t{ 3, "Channel3" }, logginator::channel_description_t{ 4, "Channel4" },
-    logginator::channel_description_t{ 5, "Channel5" }, logginator::channel_description_t{ 6, "Channel6" },
-    logginator::channel_description_t{ 7, "Channel7" }, logginator::channel_description_t{ 8, "Channel8" },
-    logginator::channel_description_t{ 9, "Channel9" }, logginator::channel_description_t{ 10, "Channel10" },
+  std::array<logginator::ChannelDescription, 10> channel_descriptions = {
+    ChannelDescription{ 1, "Channel1" }, ChannelDescription{ 2, "Channel2" },   ChannelDescription{ 3, "Channel3" }, ChannelDescription{ 4, "Channel4" },
+    ChannelDescription{ 5, "Channel5" }, ChannelDescription{ 6, "Channel6" },   ChannelDescription{ 7, "Channel7" }, ChannelDescription{ 8, "Channel8" },
+    ChannelDescription{ 9, "Channel9" }, ChannelDescription{ 10, "Channel10" },
   };
 
   // Setup multiple channels in sequence
@@ -713,7 +711,7 @@ TEST_CASE("Logger: Rapid create/destroy cycles")
     logginator::Manager_Interface&        manager = cycle_manager;
 
     test_app::SimpleData data{ .count = cycle, .value = cycle * 1.5 };
-    auto                 channel = manager.request_channel(data, logginator::channel_description_t{ 1, "Cycle" });
+    auto                 channel = manager.request_channel(data, logginator::ChannelDescription{ 1, "Cycle" });
     manager.setup_channel(1, 1);
 
     {
