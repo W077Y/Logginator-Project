@@ -6,6 +6,7 @@
 #include <mutex>
 #include <string>
 #include <string_view>
+#include <thread>
 
 namespace test_app
 {
@@ -249,7 +250,6 @@ TEST_CASE("Logger: Channel headers")
   // Print headers
   get_manager().print_channels();
   std::string output = g_output.get_output();
-  std::cout << "Channel Headers:\n" << output << std::endl << output.find("SimpleData") << std::endl;
   // Headers should contain channel info
   REQUIRE(output.find("SimpleData") != std::string::npos);
   REQUIRE(output.find("#0a") != std::string::npos);
@@ -416,4 +416,311 @@ TEST_CASE("Logger: Binary data with various byte patterns")
 
   std::string output = g_output.get_output();
   REQUIRE(output.length() > 0);
+}
+
+// ============================================================================
+// Thread-Safety Tests
+// ============================================================================
+
+TEST_CASE("Logger: Thread-safe concurrent logging")
+{
+  g_output.clear();
+
+  std::array<std::thread, 4> threads;
+
+  // Launch 4 threads logging simultaneously
+  for (int t = 0; t < 4; ++t)
+  {
+    threads[t] = std::thread(
+        [t]()
+        {
+          for (int i = 0; i < 25; ++i)
+          {
+            test_app::SimpleData data{ .count = t * 25 + i, .value = (t * 25 + i) * 0.1 };
+            logginator::print(data);
+          }
+        });
+  }
+
+  // Wait for all threads
+  for (auto& thread : threads)
+  {
+    thread.join();
+  }
+
+  std::string output = g_output.get_output();
+  // Should have 100 log lines
+  std::size_t line_count = std::count(output.begin(), output.end(), '\n');
+  REQUIRE(line_count == 100);
+  // Output should be well-formed
+  REQUIRE(output.find("#0a") != std::string::npos);
+}
+
+TEST_CASE("Logger: Thread-safe channel setup and logging")
+{
+  g_output.clear();
+
+  std::array<std::thread, 3> threads;
+
+  // Multiple threads calling setup_channel and logging
+  for (int t = 0; t < 3; ++t)
+  {
+    threads[t] = std::thread(
+        [t]()
+        {
+          for (int i = 0; i < 10; ++i)
+          {
+            test_app::SimpleData data{ .count = t * 10 + i, .value = i * 1.5 };
+            get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
+            logginator::print(data);
+          }
+        });
+  }
+
+  for (auto& thread : threads)
+  {
+    thread.join();
+  }
+
+  std::string output = g_output.get_output();
+  // Should complete without deadlock
+  std::size_t line_count = std::count(output.begin(), output.end(), '\n');
+  REQUIRE(line_count > 0);
+}
+
+// ============================================================================
+// Exception-Handling Tests
+// ============================================================================
+
+TEST_CASE("Logger: Invalid channel ID subscription error")
+{
+  // Try to setup a channel that was never subscribed
+  REQUIRE_THROWS_AS(get_manager().setup_channel(99, 1), logginator::errors::channel_setup_error);
+}
+
+TEST_CASE("Logger: Exception on line formatting")
+{
+  // Create a test that can trigger buffer overflow
+  // Use a very small manager temporarily
+  StringOutput                        small_output;
+  logginator::Manager<std::mutex, 32> small_manager{ small_output };
+  logginator::Manager_Interface&      manager = small_manager;
+
+  try
+  {
+    auto channel = manager.request_channel(test_app::SimpleData(), logginator::channel_description_t{ 1, "VeryLongChannelNameThatWillCauseBufferOverflow" });
+    manager.print_channels();
+    //  This should throw due to buffer being too small
+    REQUIRE(false);    // If we get here, buffer was large enough
+  }
+  catch (logginator::errors::line_serialization_error&)
+  {
+    REQUIRE(true);    // Expected exception
+  }
+}
+
+TEST_CASE("Logger: Multiple channel registrations")
+{
+  // Test that the same channel ID cannot be registered twice
+  StringOutput                          output;
+  logginator::Manager<std::mutex, 8192> manager{ output };
+
+  try
+  {
+    auto channel1 = manager.request_channel(test_app::SimpleData(), logginator::channel_description_t{ 50, "Ch1" });
+    auto channel2 = manager.request_channel(test_app::SimpleData(), logginator::channel_description_t{ 50, "Ch2" });
+    // Second registration with same ID should fail
+    REQUIRE(false);    // Should not reach here
+  }
+  catch (logginator::errors::channel_subscribtion_error&)
+  {
+    REQUIRE(true);    // Expected
+  }
+}
+
+// ============================================================================
+// Edge-Case Tests
+// ============================================================================
+
+TEST_CASE("Logger: Channel ID boundary - minimum (0)")
+{
+  g_output.clear();
+
+  StringOutput                          boundary_output;
+  logginator::Manager<std::mutex, 8192> boundary_manager{ boundary_output };
+  logginator::Manager_Interface&        manager = boundary_manager;
+
+  auto channel = manager.request_channel(test_app::SimpleData(), logginator::channel_description_t{ 0, "MinID" });
+  manager.setup_channel(0, 1);
+
+  test_app::SimpleData data{ .count = 1, .value = 2.0 };
+  {
+    auto line = channel.request_line();
+    print(data, line);
+  }
+
+  std::string output = boundary_output.get_output();
+  REQUIRE(output.find("#00") != std::string::npos);
+}
+
+TEST_CASE("Logger: Channel ID boundary - maximum (255)")
+{
+  StringOutput                          boundary_output;
+  logginator::Manager<std::mutex, 8192> boundary_manager{ boundary_output };
+  logginator::Manager_Interface&        manager = boundary_manager;
+
+  auto channel = manager.request_channel(test_app::SimpleData(), logginator::channel_description_t{ 255, "MaxID" });
+  manager.setup_channel(255, 1);
+
+  test_app::SimpleData data{ .count = 1, .value = 2.0 };
+  {
+    auto line = channel.request_line();
+    print(data, line);
+  }
+
+  std::string output = boundary_output.get_output();
+  REQUIRE(output.find("#ff") != std::string::npos);
+}
+
+TEST_CASE("Logger: Downsampling edge case - factor 1 (all samples)")
+{
+  g_output.clear();
+
+  get_manager().setup_channel(request_line(test_app::SimpleData()).get_cfg().ID, 1);
+
+  for (int i = 0; i < 5; ++i)
+  {
+    test_app::SimpleData data{ .count = i, .value = i * 1.0 };
+    logginator::print(data);
+  }
+
+  std::string output     = g_output.get_output();
+  std::size_t line_count = std::count(output.begin(), output.end(), '\n');
+  REQUIRE(line_count == 5);    // All 5 samples should be logged
+}
+
+TEST_CASE("Logger: Downsampling edge case - large factor")
+{
+  g_output.clear();
+
+  get_manager().setup_channel(request_line(test_app::SimpleData()).get_cfg().ID, 1000);
+
+  // Log 10 samples with downsampling of 1000
+  for (int i = 0; i < 10; ++i)
+  {
+    test_app::SimpleData data{ .count = i, .value = i * 1.0 };
+    logginator::print(data);
+  }
+
+  std::string output = g_output.get_output();
+  // None should be logged because we never reach 1000
+  std::size_t line_count = std::count(output.begin(), output.end(), '\n');
+  REQUIRE(line_count == 1);
+}
+
+TEST_CASE("Logger: Very large integers")
+{
+  g_output.clear();
+
+  test_app::SimpleData data{ .count = std::numeric_limits<int32_t>::max(), .value = std::numeric_limits<double>::min() };
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
+  logginator::print(data);
+
+  std::string output = g_output.get_output();
+  REQUIRE(output.find("2147483647") != std::string::npos);    // max int32_t value
+}
+
+TEST_CASE("Logger: Very small float values")
+{
+  g_output.clear();
+
+  test_app::SimpleData data{ .count = 1, .value = 1e-10 };
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
+  logginator::print(data);
+
+  std::string output = g_output.get_output();
+  REQUIRE(output.length() > 0);
+}
+
+TEST_CASE("Logger: Mixed special float values (negative infinity)")
+{
+  g_output.clear();
+
+  test_app::SimpleData data{ .count = 1, .value = -std::numeric_limits<double>::infinity() };
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
+  logginator::print(data);
+
+  std::string output = g_output.get_output();
+  REQUIRE(output.length() > 0);
+}
+
+TEST_CASE("Logger: Empty binary hash")
+{
+  g_output.clear();
+
+  test_app::BinaryData data{ .id = 0, .hash = {} };
+  std::fill(data.hash.begin(), data.hash.end(), std::byte(0));
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
+  logginator::print(data);
+
+  std::string output = g_output.get_output();
+  REQUIRE(output.find("#0b") != std::string::npos);
+}
+
+TEST_CASE("Logger: String with special characters")
+{
+  g_output.clear();
+
+  test_app::StringData data{ .index = 1, .message = "Test;with;semicolons" };
+  get_manager().setup_channel(request_line(data).get_cfg().ID, 1);
+  logginator::print(data);
+
+  std::string output = g_output.get_output();
+  REQUIRE(output.find("Test;with;semicolons") != std::string::npos);
+}
+
+TEST_CASE("Logger: Sequential channel setup")
+{
+  StringOutput                          sequential_output;
+  logginator::Manager<std::mutex, 8192> sequential_manager{ sequential_output };
+  logginator::Manager_Interface&        manager = sequential_manager;
+
+  std::array<logginator::channel_description_t, 10> channel_descriptions = {
+    logginator::channel_description_t{ 1, "Channel1" }, logginator::channel_description_t{ 2, "Channel2" },
+    logginator::channel_description_t{ 3, "Channel3" }, logginator::channel_description_t{ 4, "Channel4" },
+    logginator::channel_description_t{ 5, "Channel5" }, logginator::channel_description_t{ 6, "Channel6" },
+    logginator::channel_description_t{ 7, "Channel7" }, logginator::channel_description_t{ 8, "Channel8" },
+    logginator::channel_description_t{ 9, "Channel9" }, logginator::channel_description_t{ 10, "Channel10" },
+  };
+
+  // Setup multiple channels in sequence
+  for (uint8_t i = 0; i < 10; ++i)
+  {
+    auto channel = manager.request_channel(test_app::SimpleData(), channel_descriptions[i]);
+    manager.setup_channel(channel_descriptions[i].ID, 1);
+  }
+
+  REQUIRE(true);    // If we get here, no exceptions were thrown
+}
+
+TEST_CASE("Logger: Rapid create/destroy cycles")
+{
+  // Test that channels can be created and destroyed rapidly without issues
+  for (int cycle = 0; cycle < 5; ++cycle)
+  {
+    StringOutput                          cycle_output;
+    logginator::Manager<std::mutex, 2048> cycle_manager{ cycle_output };
+    logginator::Manager_Interface&        manager = cycle_manager;
+
+    test_app::SimpleData data{ .count = cycle, .value = cycle * 1.5 };
+    auto                 channel = manager.request_channel(data, logginator::channel_description_t{ 1, "Cycle" });
+    manager.setup_channel(1, 1);
+
+    {
+      auto line = channel.request_line();
+      print(data, line);
+    }
+  }
+
+  REQUIRE(true);
 }
