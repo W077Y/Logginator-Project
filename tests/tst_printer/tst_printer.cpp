@@ -105,11 +105,10 @@ TEST_CASE()
 void init_logginator()
 {
   auto& man = request_manager();
-
-  man.setup_channel(request_line(my_app::type_a{}).get_cfg().ID, 1);
-  man.setup_channel(request_line(my_app::type_b{}).get_cfg().ID, 2);
-  man.setup_channel(request_line(my_app::type_c{}).get_cfg().ID, 3);
-  man.setup_channel(request_line(my_app::type_d{}).get_cfg().ID, 4);
+  request_line(my_app::type_a{});
+  request_line(my_app::type_b{});
+  request_line(my_app::type_c{});
+  request_line(my_app::type_d{});
   man.print_channels();
 }
 
@@ -185,26 +184,26 @@ logginator::Manager_Interface& request_manager()
 logginator::line_t my_app::request_line(type_a const& value)
 {
   using namespace logginator;
-  static auto obj = request_manager().request_channel(value, ChannelDescription{ 1, "Channel 1" });
+  static auto obj = request_manager().request_channel(value, ChannelDescription{ 1, "Channel 1" }, 1);
   return obj.request_line();
 }
 
 logginator::line_t my_app::request_line(type_b const& value)
 {
   using namespace logginator;
-  static auto obj = request_manager().request_channel(value, ChannelDescription{ 2, "Channel 2" });
+  static auto obj = request_manager().request_channel(value, ChannelDescription{ 2, "Channel 2" }, 1);
   return obj.request_line();
 }
 
 logginator::line_t my_app::request_line(type_c const& value)
 {
   using namespace logginator;
-  static auto obj = request_manager().request_channel(value, ChannelDescription{ 3, "Channel 3" });
+  static auto obj = request_manager().request_channel(value, ChannelDescription{ 3, "Channel 3" }, 1);
   return obj.request_line();
 }
 logginator::line_t my_app::request_line(type_d const& value)
 {
   using namespace logginator;
-  static auto obj = request_manager().request_channel(value, ChannelDescription{ 4, "Channel 4" });
+  static auto obj = request_manager().request_channel(value, ChannelDescription{ 4, "Channel 4" }, 1);
   return obj.request_line();
 }
